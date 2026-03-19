@@ -8,8 +8,10 @@ class Config:
     VERSION = "1.0.0"
 
     # Paths
+    _PROJECT_ROOT = Path(__file__).resolve().parent.parent
     APP_DIR = Path.home() / ".momentum"
     DB_PATH = APP_DIR / "momentum.db"
+    ICON_PATH = _PROJECT_ROOT / "resources" / "icons" / "momentum.png"
 
     # Video
     VIDEO_EXTENSIONS = frozenset({

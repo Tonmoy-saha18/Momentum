@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import sys
 
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import QApplication
 
 from momentum.config import Config
@@ -28,6 +28,9 @@ class MomentumApp:
         self.qt.setApplicationName(Config.APP_NAME)
         self.qt.setApplicationVersion(Config.VERSION)
         self.qt.setStyleSheet(Theme.get_stylesheet(Theme.DARK))
+
+        if Config.ICON_PATH.exists():
+            self.qt.setWindowIcon(QIcon(str(Config.ICON_PATH)))
 
         font = QFont("Segoe UI", 10)
         self.qt.setFont(font)

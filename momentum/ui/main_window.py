@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -40,6 +40,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Momentum")
         self.setMinimumSize(Config.MIN_WINDOW_WIDTH, Config.MIN_WINDOW_HEIGHT)
         self.resize(1400, 850)
+
+        if Config.ICON_PATH.exists():
+            self.setWindowIcon(QIcon(str(Config.ICON_PATH)))
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
