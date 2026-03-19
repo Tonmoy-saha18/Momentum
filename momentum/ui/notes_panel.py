@@ -31,6 +31,7 @@ class NotesPanel(QWidget):
         self._current_lesson_id: int | None = None
         self._current_ts_ms: int = 0
         self._auto_timestamp = True
+        self._compact = False
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -87,6 +88,24 @@ class NotesPanel(QWidget):
         self.notes_list.itemDoubleClicked.connect(self._on_item_dbl)
         layout.addWidget(self.notes_list, stretch=1)
 
+    def set_compact(self, compact: bool) -> None:
+        """Compact mode for narrow side panels (focus mode)."""
+        self._compact = compact
+        if compact:
+            self.btn_auto_ts.setText("⏱")
+            self.btn_auto_ts.setFixedWidth(38)
+            self.btn_add.setText("Add")
+            self.btn_add.setFixedWidth(64)
+        else:
+            self.btn_auto_ts.setText(
+                "Auto-timestamping on" if self._auto_timestamp else "Auto-timestamping off"
+            )
+            self.btn_auto_ts.setMinimumWidth(0)
+            self.btn_auto_ts.setMaximumWidth(16777215)
+            self.btn_add.setText("Add Note")
+            self.btn_add.setMinimumWidth(0)
+            self.btn_add.setMaximumWidth(16777215)
+
     # ── Public ───────────────────────────────────────────────────────
 
     def set_lesson(self, lesson_id: int) -> None:
@@ -131,6 +150,9 @@ class NotesPanel(QWidget):
 
     def _toggle_auto_ts(self, checked: bool) -> None:
         self._auto_timestamp = checked
-        self.btn_auto_ts.setText("Auto-timestamping on" if checked else "Auto-timestamping off")
+        if self._compact:
+            self.btn_auto_ts.setText("⏱")
+        else:
+            self.btn_auto_ts.setText("Auto-timestamping on" if checked else "Auto-timestamping off")
         if not checked:
             self.line_edit.setPlaceholderText("Add a note…")

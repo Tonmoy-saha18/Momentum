@@ -70,8 +70,19 @@ QStatusBar {
 }
 
 #sidebarHeader {
+    background-color: #0f1520;
+    border-bottom: 1px solid #21262d;
+}
+
+#collapseButton {
     background-color: transparent;
-    border-bottom: none;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    color: #8b949e;
+}
+#collapseButton:hover {
+    background-color: #21262d;
+    color: #e6edf3;
 }
 
 #courseNameLabel {
@@ -150,7 +161,7 @@ QStatusBar {
     background-color: #7c3aed;
     color: #ffffff;
     border: none;
-    border-radius: 16px;
+    border-radius: 14px;
     font-size: 15px;
     font-weight: bold;
     padding: 0px;
@@ -484,16 +495,22 @@ QTabBar::tab:hover {
     background-color: #0f1520;
     border-bottom: 1px solid #21262d;
 }
-#breadcrumbButton {
-    background-color: transparent;
-    border: none;
-    color: #cbd5e1;
-    font-size: 13px;
-    padding: 6px 0px;
-}
-#breadcrumbButton:hover { color: #e6edf3; }
-
 #focusModeLabel { color: #cbd5e1; font-size: 13px; }
+
+#dashTitleBlock { background: transparent; }
+#dashCourseTitle {
+    background: transparent;
+    color: #8b949e;
+    font-size: 12px;
+    padding: 0px;
+}
+#dashLessonTitle {
+    background: transparent;
+    color: #e6edf3;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0px;
+}
 
 #focusSwitch { background: transparent; }
 #focusSwitch::indicator {
@@ -528,6 +545,25 @@ QTabBar::tab:hover {
     border-bottom: 2px solid #7c3aed;
     font-weight: 600;
 }
+
+#bottomDrawerHandle {
+    background-color: rgba(33, 38, 45, 140);
+    border: 1px solid rgba(255, 255, 255, 16);
+    border-radius: 9px;
+    color: #8b949e;
+    padding: 0px;
+    font-size: 12px;
+}
+#bottomDrawerHandle:hover {
+    background-color: rgba(48, 54, 61, 170);
+    color: #e6edf3;
+}
+
+#bottomDrawerPreview {
+    color: #8b949e;
+    background: transparent;
+    padding: 6px 2px 2px 2px;
+}
 #completeButton {
     background-color: #238636;
     color: #ffffff;
@@ -548,6 +584,22 @@ QTabBar::tab:hover {
 }
 #nextButton:hover {
     background-color: #30363d;
+}
+
+#prevButton {
+    background-color: #21262d;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 6px 16px;
+}
+#prevButton:hover {
+    background-color: #30363d;
+}
+#prevButton:disabled {
+    color: #6b7280;
+    border-color: #2a2f3a;
+    background-color: #1b202a;
 }
 
 #panelCard {

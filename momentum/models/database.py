@@ -258,6 +258,37 @@ class Database:
                 ).fetchone()
         return self._row_to_lesson(row) if row else None
 
+    def get_previous_lesson(self, course_id: int, current_lesson_id: int) -> Optional[Lesson]:
+        """Return the lesson immediately preceding the current one in course order."""
+        if current_lesson_id <= 0:
+            return None
+
+        with self._connection() as conn:
+            cur = conn.execute(
+                """SELECT s.order_index AS sec_order, l.order_index AS lesson_order
+                   FROM lessons l
+                   JOIN sections s ON l.section_id = s.id
+                   WHERE l.course_id = ? AND l.id = ?
+                   LIMIT 1""",
+                (course_id, current_lesson_id),
+            ).fetchone()
+            if cur is None:
+                return None
+
+            row = conn.execute(
+                """SELECT l.* FROM lessons l
+                   JOIN sections s ON l.section_id = s.id
+                   WHERE l.course_id = ?
+                     AND (
+                       s.order_index < ?
+                       OR (s.order_index = ? AND l.order_index < ?)
+                     )
+                   ORDER BY s.order_index DESC, l.order_index DESC
+                   LIMIT 1""",
+                (course_id, cur["sec_order"], cur["sec_order"], cur["lesson_order"]),
+            ).fetchone()
+        return self._row_to_lesson(row) if row else None
+
     # ── Notes CRUD ───────────────────────────────────────────────────
 
     def insert_note(self, note: Note) -> int:

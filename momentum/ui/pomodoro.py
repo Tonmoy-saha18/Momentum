@@ -19,6 +19,8 @@ from momentum.config import Config
 
 
 class _PomodoroRing(QWidget):
+    clicked = Signal()
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("pomodoroRing")
@@ -26,6 +28,8 @@ class _PomodoroRing(QWidget):
         self._total = 1
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setToolTip("Click to start/pause")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -43,6 +47,11 @@ class _PomodoroRing(QWidget):
         layout.addWidget(self.lbl_time)
 
         layout.addSpacing(6)
+
+    def mousePressEvent(self, event) -> None:  # noqa: N802
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit()
+        super().mousePressEvent(event)
 
     def set_time(self, remaining_seconds: int, total_seconds: int) -> None:
         self._remaining = max(0, remaining_seconds)
@@ -180,6 +189,7 @@ class PomodoroTimer(QWidget):
         rl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.ring = _PomodoroRing()
+        self.ring.clicked.connect(self.toggle)
         rl.addWidget(self.ring, stretch=1)
         self._stack.addWidget(ring_wrap)
 
@@ -256,7 +266,10 @@ class PomodoroTimer(QWidget):
             total = self._long_break if (self._session_count % self._long_every == 0) else self._short_break
 
         self.lbl_time.setText(self._fmt(self._remaining))
-        self.ring.set_time(self._remaining, total)
+        # Avoid repainting the (hidden) ring view in normal mode; it can cause jitter
+        # when the widget is resized/animated in a small drawer.
+        if self._stack.currentIndex() == 1:
+            self.ring.set_time(self._remaining, total)
 
     @staticmethod
     def _fmt(seconds: int) -> str:
