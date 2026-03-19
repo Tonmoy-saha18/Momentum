@@ -27,6 +27,7 @@ class VideoPlayer(QWidget):
     video_completed = Signal()
     playback_started = Signal()
     playback_paused = Signal()
+    fullscreen_changed = Signal(bool)
 
     _AUTOSAVE_INTERVAL_MS = 5_000
     _SEEK_STEP_MS = 10_000
@@ -112,12 +113,12 @@ class VideoPlayer(QWidget):
 
         self.btn_play = QPushButton("▶")
         self.btn_play.setObjectName("playButton")
-        self.btn_play.setFixedSize(40, 40)
+        self.btn_play.setFixedSize(30, 30)
         row.addWidget(self.btn_play)
 
         self.btn_stop = QPushButton("⏹")
         self.btn_stop.setObjectName("transportButton")
-        self.btn_stop.setFixedSize(34, 34)
+        self.btn_stop.setFixedSize(30, 30)
         self.btn_stop.setToolTip("Stop")
         row.addWidget(self.btn_stop)
 
@@ -146,11 +147,11 @@ class VideoPlayer(QWidget):
 
         row.addStretch()
 
-        self.btn_speed = QPushButton("1.5x")
-        self.btn_speed.setObjectName("speedButton")
-        self.btn_speed.setFixedSize(54, 30)
-        self.btn_speed.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        row.addWidget(self.btn_speed)
+        # self.btn_speed = QPushButton("1.5x")
+        # self.btn_speed.setObjectName("speedButton")
+        # self.btn_speed.setFixedSize(54, 30)
+        # self.btn_speed.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        # row.addWidget(self.btn_speed)
 
         self.lbl_time = QLabel("00:00 / 00:00")
         self.lbl_time.setObjectName("timeLabel")
@@ -159,7 +160,7 @@ class VideoPlayer(QWidget):
 
         self.btn_fullscreen = QPushButton("⛶")
         self.btn_fullscreen.setObjectName("transportButton")
-        self.btn_fullscreen.setFixedSize(34, 34)
+        self.btn_fullscreen.setFixedSize(30, 30)
         self.btn_fullscreen.setToolTip("Fullscreen")
         row.addWidget(self.btn_fullscreen)
 
@@ -234,6 +235,7 @@ class VideoPlayer(QWidget):
         if not fs and self._kbd_grabbed:
             self.video_widget.releaseKeyboard()
             self._kbd_grabbed = False
+        self.fullscreen_changed.emit(fs)
 
     def eventFilter(self, obj, event):  # noqa: N802
         if obj is self.video_widget and self.video_widget.isFullScreen():
