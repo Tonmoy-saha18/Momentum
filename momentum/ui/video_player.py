@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QTimer, QUrl, Signal
+from PySide6.QtCore import QEvent, Qt, QTimer, QUrl, Signal
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -34,6 +35,8 @@ class VideoPlayer(QWidget):
         super().__init__(parent)
         self._current_file: str | None = None
         self._completion_emitted = False
+        self._focus_ui = False
+        self._kbd_grabbed = False
 
         self._build_player()
         self._build_ui()
@@ -51,32 +54,61 @@ class VideoPlayer(QWidget):
         self.audio.setVolume(0.7)
         self.player.setAudioOutput(self.audio)
         self.video_widget = QVideoWidget()
+        self.video_widget.installEventFilter(self)
         self.player.setVideoOutput(self.video_widget)
 
     # ── UI ───────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
 
+        surface = QWidget()
+        surface.setObjectName("videoSurface")
+        sl = QVBoxLayout(surface)
+        sl.setContentsMargins(10, 8, 10, 8)
+        sl.setSpacing(8)
+
+        # Top title pill (focus mode screenshot)
+        self.title_pill = QLabel("")
+        self.title_pill.setObjectName("videoTitlePill")
+        self.title_pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_pill.setFixedHeight(44)
+        self.title_pill.hide()
+        sl.addWidget(self.title_pill, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+        # Video surface — takes all available space
         self.video_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.video_widget.setMinimumHeight(280)
-        layout.addWidget(self.video_widget)
+        self.video_widget.setMinimumHeight(200)
+        sl.addWidget(self.video_widget, stretch=1)
 
-        controls = QWidget()
-        controls.setObjectName("videoControls")
+        # ── Floating controls overlay (both screenshots) ───────────
+        controls_outer = QWidget()
+        controls_outer.setObjectName("videoControlsOuter")
+        col = QHBoxLayout(controls_outer)
+        col.setContentsMargins(0, 0, 0, 0)
+        col.setSpacing(0)
+        col.addStretch()
+
+        controls = QFrame()
+        controls.setObjectName("videoOverlayControls")
+        controls.setFixedHeight(66)
+        controls.setMinimumWidth(760)
+        controls.setMaximumWidth(980)
         cl = QVBoxLayout(controls)
-        cl.setContentsMargins(16, 8, 16, 8)
-        cl.setSpacing(4)
+        cl.setContentsMargins(16, 10, 16, 10)
+        cl.setSpacing(6)
 
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.setObjectName("videoSlider")
         self.slider.setRange(0, 0)
+        self.slider.setFixedHeight(14)
         cl.addWidget(self.slider)
 
         row = QHBoxLayout()
-        row.setSpacing(8)
+        row.setSpacing(10)
+        row.setContentsMargins(0, 0, 0, 0)
 
         self.btn_play = QPushButton("▶")
         self.btn_play.setObjectName("playButton")
@@ -84,36 +116,59 @@ class VideoPlayer(QWidget):
         row.addWidget(self.btn_play)
 
         self.btn_stop = QPushButton("⏹")
-        self.btn_stop.setFixedSize(32, 32)
+        self.btn_stop.setObjectName("transportButton")
+        self.btn_stop.setFixedSize(34, 34)
+        self.btn_stop.setToolTip("Stop")
         row.addWidget(self.btn_stop)
 
-        self.btn_back = QPushButton("⏪ 10s")
-        self.btn_back.setFixedSize(56, 32)
+        self.btn_back = QPushButton("−10s")
+        self.btn_back.setObjectName("transportButton")
+        self.btn_back.setFixedSize(46, 30)
         row.addWidget(self.btn_back)
 
-        self.btn_fwd = QPushButton("10s ⏩")
-        self.btn_fwd.setFixedSize(56, 32)
+        self.btn_fwd = QPushButton("+10s")
+        self.btn_fwd.setObjectName("transportButton")
+        self.btn_fwd.setFixedSize(46, 30)
         row.addWidget(self.btn_fwd)
 
-        self.lbl_time = QLabel("00:00 / 00:00")
-        self.lbl_time.setObjectName("timeLabel")
-        row.addWidget(self.lbl_time)
-
-        row.addStretch()
-
         self.btn_mute = QPushButton("🔊")
-        self.btn_mute.setFixedSize(32, 32)
+        self.btn_mute.setObjectName("transportButton")
+        self.btn_mute.setFixedSize(30, 30)
         row.addWidget(self.btn_mute)
 
         self.vol_slider = QSlider(Qt.Orientation.Horizontal)
         self.vol_slider.setObjectName("volumeSlider")
         self.vol_slider.setRange(0, 100)
         self.vol_slider.setValue(70)
-        self.vol_slider.setFixedWidth(100)
+        self.vol_slider.setFixedWidth(90)
+        self.vol_slider.setFixedHeight(14)
         row.addWidget(self.vol_slider)
 
+        row.addStretch()
+
+        self.btn_speed = QPushButton("1.5x")
+        self.btn_speed.setObjectName("speedButton")
+        self.btn_speed.setFixedSize(54, 30)
+        self.btn_speed.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        row.addWidget(self.btn_speed)
+
+        self.lbl_time = QLabel("00:00 / 00:00")
+        self.lbl_time.setObjectName("timeLabel")
+        self.lbl_time.setFixedWidth(130)
+        row.addWidget(self.lbl_time)
+
+        self.btn_fullscreen = QPushButton("⛶")
+        self.btn_fullscreen.setObjectName("transportButton")
+        self.btn_fullscreen.setFixedSize(34, 34)
+        self.btn_fullscreen.setToolTip("Fullscreen")
+        row.addWidget(self.btn_fullscreen)
+
         cl.addLayout(row)
-        layout.addWidget(controls)
+        col.addWidget(controls)
+        col.addStretch()
+        sl.addWidget(controls_outer, alignment=Qt.AlignmentFlag.AlignBottom)
+
+        root.addWidget(surface, stretch=1)
 
     # ── Signals ──────────────────────────────────────────────────────
 
@@ -127,6 +182,8 @@ class VideoPlayer(QWidget):
         self.btn_back.clicked.connect(lambda: self.seek_relative(-self._SEEK_STEP_MS))
         self.btn_fwd.clicked.connect(lambda: self.seek_relative(self._SEEK_STEP_MS))
         self.btn_mute.clicked.connect(self.toggle_mute)
+        self.btn_fullscreen.clicked.connect(self.toggle_fullscreen)
+        self.video_widget.fullScreenChanged.connect(self._on_fullscreen_changed)
 
         self.slider.sliderMoved.connect(self._on_slider)
         self.vol_slider.valueChanged.connect(self._on_volume)
@@ -161,11 +218,44 @@ class VideoPlayer(QWidget):
         self.audio.setMuted(muted)
         self.btn_mute.setText("🔇" if muted else "🔊")
 
+    def toggle_fullscreen(self) -> None:
+        if self.video_widget.isFullScreen():
+            self.video_widget.setFullScreen(False)
+        else:
+            self.video_widget.setFullScreen(True)
+            self.video_widget.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+
+    def _on_fullscreen_changed(self, fs: bool) -> None:
+        self.btn_fullscreen.setToolTip("Exit Fullscreen" if fs else "Fullscreen")
+        self.btn_fullscreen.setText("🗗" if fs else "⛶")
+        if fs and not self._kbd_grabbed:
+            self.video_widget.grabKeyboard()
+            self._kbd_grabbed = True
+        if not fs and self._kbd_grabbed:
+            self.video_widget.releaseKeyboard()
+            self._kbd_grabbed = False
+
+    def eventFilter(self, obj, event):  # noqa: N802
+        if obj is self.video_widget and self.video_widget.isFullScreen():
+            if event.type() == QEvent.Type.KeyPress and event.key() == Qt.Key.Key_Escape:
+                self.video_widget.setFullScreen(False)
+                return True
+        return super().eventFilter(obj, event)
+
     def get_position(self) -> int:
         return self.player.position()
 
     def get_duration(self) -> int:
         return self.player.duration()
+
+    def set_focus_ui(self, enabled: bool) -> None:
+        """Adjust overlays for focus mode."""
+        self._focus_ui = enabled
+        self.title_pill.setVisible(enabled and bool(self.title_pill.text().strip()))
+
+    def set_title(self, title: str) -> None:
+        self.title_pill.setText(title)
+        self.title_pill.setVisible(self._focus_ui and bool(title.strip()))
 
     # ── Slots ────────────────────────────────────────────────────────
 
