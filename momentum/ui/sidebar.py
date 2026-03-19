@@ -6,7 +6,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
-    QProgressBar,
+    QPushButton,
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
@@ -20,6 +20,7 @@ class CourseSidebar(QWidget):
     """Left-hand navigation tree for the active course."""
 
     lesson_selected = Signal(int)
+    collapse_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -27,40 +28,31 @@ class CourseSidebar(QWidget):
         self._lesson_items: dict[int, QTreeWidgetItem] = {}
         self._setup_ui()
 
-    # ── UI construction ──────────────────────────────────────────────
-
     def _setup_ui(self) -> None:
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # Header
+        # Minimal top strip with collapse control (matches mock)
         header = QWidget()
         header.setObjectName("sidebarHeader")
-        hdr = QVBoxLayout(header)
-        hdr.setContentsMargins(16, 16, 16, 12)
+        hl = QHBoxLayout(header)
+        hl.setContentsMargins(12, 10, 12, 10)
+        hl.setSpacing(8)
 
-        self.lbl_course = QLabel("No Course Loaded")
+        self.lbl_course = QLabel("")
         self.lbl_course.setObjectName("courseNameLabel")
-        self.lbl_course.setWordWrap(True)
-        hdr.addWidget(self.lbl_course)
+        self.lbl_course.hide()
+        hl.addWidget(self.lbl_course)
 
-        row = QHBoxLayout()
-        self.lbl_progress = QLabel("0 / 0 lessons")
-        self.lbl_progress.setObjectName("progressLabel")
-        row.addWidget(self.lbl_progress)
-        self.lbl_percent = QLabel("0%")
-        self.lbl_percent.setObjectName("percentLabel")
-        row.addWidget(self.lbl_percent, alignment=Qt.AlignmentFlag.AlignRight)
-        hdr.addLayout(row)
+        hl.addStretch()
 
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setObjectName("courseProgressBar")
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(False)
-        self.progress_bar.setFixedHeight(6)
-        hdr.addWidget(self.progress_bar)
+        self.btn_collapse = QPushButton("«")
+        self.btn_collapse.setObjectName("collapseButton")
+        self.btn_collapse.setFixedSize(28, 28)
+        self.btn_collapse.setToolTip("Focus mode")
+        self.btn_collapse.clicked.connect(self.collapse_requested.emit)
+        hl.addWidget(self.btn_collapse, alignment=Qt.AlignmentFlag.AlignTop)
 
         root.addWidget(header)
 
@@ -71,6 +63,7 @@ class CourseSidebar(QWidget):
         self.tree.setIndentation(20)
         self.tree.setAnimated(True)
         self.tree.setRootIsDecorated(True)
+        self.tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.tree.itemClicked.connect(self._on_item_clicked)
         root.addWidget(self.tree)
 
@@ -85,7 +78,6 @@ class CourseSidebar(QWidget):
         self._lesson_items.clear()
         self.tree.clear()
         self.lbl_course.setText(course.name)
-        self._update_progress(course)
 
         for section in sections:
             sec_item = QTreeWidgetItem(self.tree)
@@ -114,9 +106,7 @@ class CourseSidebar(QWidget):
             self.tree.setCurrentItem(item)
 
     def update_progress(self, course: Course) -> None:
-        self._update_progress(course)
-
-    # ── Internals ────────────────────────────────────────────────────
+        _ = course  # progress display intentionally hidden (mock matches tree-only sidebar)
 
     @staticmethod
     def _set_lesson_text(item: QTreeWidgetItem, lesson: Lesson) -> None:
@@ -124,10 +114,7 @@ class CourseSidebar(QWidget):
         item.setText(0, f"    {icon}  {lesson.title}")
 
     def _update_progress(self, course: Course) -> None:
-        self.lbl_progress.setText(f"{course.completed_lessons} / {course.total_lessons} lessons")
-        pct = course.progress_percent
-        self.lbl_percent.setText(f"{pct:.0f}%")
-        self.progress_bar.setValue(int(pct))
+        _ = course
 
     def _on_item_clicked(self, item: QTreeWidgetItem, _col: int) -> None:
         data = item.data(0, Qt.ItemDataRole.UserRole)

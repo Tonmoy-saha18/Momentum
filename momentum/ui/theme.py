@@ -65,13 +65,13 @@ QStatusBar {
 
 /* ─── Sidebar ────────────────────────────────────────────── */
 #sidebar {
-    background-color: #161b22;
+    background-color: #0f1520;
     border-right: 1px solid #21262d;
 }
 
 #sidebarHeader {
-    background-color: #161b22;
-    border-bottom: 1px solid #21262d;
+    background-color: transparent;
+    border-bottom: none;
 }
 
 #courseNameLabel {
@@ -103,11 +103,13 @@ QStatusBar {
 
 /* ─── Lesson Tree ────────────────────────────────────────── */
 #lessonTree {
-    background-color: #161b22;
+    background-color: #0f1520;
     border: none;
     outline: none;
-    padding: 4px;
+    padding: 8px;
     font-size: 13px;
+    selection-background-color: #2d2250;
+    selection-color: #c4b5fd;
 }
 #lessonTree::item {
     padding: 8px 8px;
@@ -115,35 +117,70 @@ QStatusBar {
     margin: 1px 4px;
 }
 #lessonTree::item:selected {
-    background-color: #7c3aed22;
-    color: #a78bfa;
+    background-color: #2d2250;
+    color: #c4b5fd;
 }
-#lessonTree::item:hover {
-    background-color: #21262d;
+#lessonTree::item:hover:!selected {
+    background-color: #1c2333;
 }
 #lessonTree::branch {
     background-color: transparent;
 }
 
-/* ─── Video Controls ─────────────────────────────────────── */
-#videoControls {
-    background-color: #161b22;
-    border-top: 1px solid #21262d;
+/* ─── Video (surface + overlays) ─────────────────────────── */
+#videoSurface { background-color: #000000; }
+
+#videoOverlayControls {
+    background-color: rgba(15, 21, 32, 200);
+    border: 1px solid rgba(255, 255, 255, 18);
+    border-radius: 12px;
+}
+
+#videoTitlePill {
+    background-color: rgba(45, 91, 98, 235);
+    border: 1px solid rgba(172, 226, 220, 130);
+    border-radius: 10px;
+    padding: 8px 18px;
+    color: #e6edf3;
+    font-size: 22px;
+    font-weight: 700;
 }
 
 #playButton {
     background-color: #7c3aed;
     color: #ffffff;
     border: none;
-    border-radius: 20px;
-    font-size: 16px;
+    border-radius: 16px;
+    font-size: 15px;
     font-weight: bold;
+    padding: 0px;
 }
 #playButton:hover {
     background-color: #6d28d9;
 }
 #playButton:pressed {
     background-color: #5b21b6;
+}
+
+#transportButton {
+    background-color: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 14px;
+    font-size: 11px;
+    padding: 0px;
+}
+#transportButton:hover {
+    background-color: #30363d;
+    color: #e6edf3;
+    border-color: #484f58;
+}
+#transportButton:pressed {
+    background-color: #3d4450;
+}
+#transportButton:focus {
+    outline: none;
+    border-color: #484f58;
 }
 
 QPushButton {
@@ -166,8 +203,18 @@ QPushButton:pressed {
     color: #8b949e;
     font-size: 12px;
     font-family: "Consolas", "Courier New", monospace;
-    min-width: 110px;
+    background: transparent;
+    border: none;
 }
+
+#speedButton {
+    background-color: rgba(33, 38, 45, 220);
+    color: #e6edf3;
+    border: 1px solid rgba(255, 255, 255, 20);
+    border-radius: 8px;
+    font-weight: 600;
+}
+#speedButton:hover { background-color: rgba(48, 54, 61, 230); }
 
 /* ─── Sliders ────────────────────────────────────────────── */
 #videoSlider::groove:horizontal {
@@ -272,6 +319,29 @@ QTabBar::tab:hover {
     background-color: #6d28d9;
 }
 
+#autoTimestampButton {
+    background-color: #21262d;
+    color: #cbd5e1;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 8px 14px;
+}
+#autoTimestampButton:checked {
+    border-color: rgba(124, 58, 237, 120);
+}
+
+#noteDeleteButton {
+    background-color: transparent;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+#noteDeleteButton:enabled:hover {
+    background-color: #21262d;
+    color: #e6edf3;
+}
+
 #panelTitle {
     font-size: 14px;
     font-weight: 600;
@@ -282,50 +352,53 @@ QTabBar::tab:hover {
 #pomodoroPanel {
     background-color: #0d1117;
 }
-#pomodoroStatus {
-    font-size: 12px;
-    font-weight: 600;
-    color: #7c3aed;
-    letter-spacing: 2px;
-}
-#pomodoroTime {
-    font-size: 56px;
+#pomodoroBigTime {
+    font-size: 54px;
     font-weight: 300;
     color: #e6edf3;
     font-family: "Consolas", "Courier New", monospace;
 }
-#pomodoroProgress {
-    background-color: #21262d;
-    border: none;
-    border-radius: 3px;
-}
-#pomodoroProgress::chunk {
-    background-color: #7c3aed;
-    border-radius: 3px;
-}
-#pomodoroStart {
+
+#pomodoroPrimary {
     background-color: #7c3aed;
     color: #ffffff;
     border: none;
     border-radius: 6px;
-    padding: 10px 28px;
+    padding: 10px 22px;
     font-weight: 600;
     font-size: 14px;
 }
-#pomodoroStart:hover {
+#pomodoroPrimary:hover {
     background-color: #6d28d9;
 }
-#pomodoroReset {
+
+#pomodoroSecondary {
     background-color: #21262d;
     color: #e6edf3;
     border: 1px solid #30363d;
     border-radius: 6px;
-    padding: 10px 28px;
+    padding: 10px 16px;
+    font-size: 13px;
+}
+
+#pomodoroSettings {
+    background-color: transparent;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: #8b949e;
     font-size: 14px;
 }
-#pomodoroSessions {
-    color: #8b949e;
-    font-size: 12px;
+#pomodoroSettings:hover { background-color: #21262d; color: #e6edf3; }
+
+#pomodoroRingTime {
+    font-size: 22px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-top: -6px;
+}
+#pomodoroRingIcon {
+    font-size: 16px;
+    color: #e6edf3;
 }
 
 /* ─── Home View ──────────────────────────────────────────── */
@@ -405,15 +478,55 @@ QTabBar::tab:hover {
     background-color: #161b22;
     border-bottom: 1px solid #21262d;
 }
-#backButton {
+
+/* Modern lesson top bar (mock-aligned) */
+#dashTopBar {
+    background-color: #0f1520;
+    border-bottom: 1px solid #21262d;
+}
+#breadcrumbButton {
     background-color: transparent;
     border: none;
-    color: #8b949e;
+    color: #cbd5e1;
     font-size: 13px;
-    padding: 6px 12px;
+    padding: 6px 0px;
 }
-#backButton:hover {
-    color: #e6edf3;
+#breadcrumbButton:hover { color: #e6edf3; }
+
+#focusModeLabel { color: #cbd5e1; font-size: 13px; }
+
+#focusSwitch { background: transparent; }
+#focusSwitch::indicator {
+    width: 42px;
+    height: 22px;
+    border-radius: 11px;
+    background: #21262d;
+    border: 1px solid #30363d;
+}
+#focusSwitch::indicator:checked {
+    background: #7c3aed;
+    border: 1px solid #6d28d9;
+}
+#streakChip {
+    background-color: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 6px 10px;
+    color: #d1d5db;
+}
+#bottomTabs { background: transparent; }
+#bottomTab, #bottomTabActive {
+    background: transparent;
+    border: none;
+    padding: 4px 0px;
+    font-size: 13px;
+}
+#bottomTab { color: #8b949e; }
+#bottomTab:hover { color: #e6edf3; }
+#bottomTabActive {
+    color: #a78bfa;
+    border-bottom: 2px solid #7c3aed;
+    font-weight: 600;
 }
 #completeButton {
     background-color: #238636;
@@ -435,6 +548,35 @@ QTabBar::tab:hover {
 }
 #nextButton:hover {
     background-color: #30363d;
+}
+
+#panelCard {
+    background-color: #0f1520;
+    border: 1px solid #21262d;
+    border-radius: 14px;
+}
+
+#focusPanel {
+    background-color: #0d1117;
+    border-left: 1px solid #21262d;
+}
+
+/* ─── Icon Rail (Focus Mode) ────────────────────────────── */
+#iconRail {
+    background-color: #161b22;
+    border-right: 1px solid #21262d;
+}
+#railIcon {
+    background-color: transparent;
+    border: none;
+    border-radius: 10px;
+    color: #8b949e;
+    font-size: 18px;
+    padding: 0px;
+}
+#railIcon:hover {
+    background-color: #21262d;
+    color: #e6edf3;
 }
 
 /* ─── Analytics View ─────────────────────────────────────── */
@@ -574,13 +716,18 @@ QStatusBar {
 
 #lessonTree { background-color: #f6f8fa; border: none; padding: 4px; }
 #lessonTree::item { padding: 8px 8px; border-radius: 6px; margin: 1px 4px; }
-#lessonTree::item:selected { background-color: #7c3aed22; color: #6d28d9; }
-#lessonTree::item:hover { background-color: #eaeef2; }
+#lessonTree::item:selected { background-color: #ede9fe; color: #5b21b6; }
+#lessonTree::item:hover:!selected { background-color: #eaeef2; }
 #lessonTree::branch { background-color: transparent; }
 
 #videoControls { background-color: #f6f8fa; border-top: 1px solid #d0d7de; }
-#playButton { background-color: #7c3aed; color: #fff; border: none; border-radius: 20px; font-size: 16px; }
+#playButton { background-color: #7c3aed; color: #fff; border: none; border-radius: 16px; font-size: 15px; font-weight: bold; padding: 0px; }
 #playButton:hover { background-color: #6d28d9; }
+
+#transportButton { background-color: #eaeef2; color: #656d76; border: 1px solid #d0d7de; border-radius: 14px; font-size: 11px; padding: 0px; }
+#transportButton:hover { background-color: #d8dee4; color: #1f2328; border-color: #afb8c1; }
+#transportButton:pressed { background-color: #ced5dc; }
+#transportButton:focus { outline: none; border-color: #afb8c1; }
 
 QPushButton {
     background-color: #f6f8fa;
@@ -591,7 +738,7 @@ QPushButton {
 }
 QPushButton:hover { background-color: #eaeef2; }
 
-#timeLabel { color: #656d76; font-size: 12px; font-family: "Consolas", monospace; min-width: 110px; }
+#timeLabel { color: #656d76; font-size: 12px; font-family: "Consolas", monospace; background: transparent; border: none; }
 
 #videoSlider::groove:horizontal { height: 6px; background: #eaeef2; border-radius: 3px; }
 #videoSlider::handle:horizontal { background: #7c3aed; width: 14px; height: 14px; margin: -4px 0; border-radius: 7px; }
@@ -611,7 +758,7 @@ QTabBar::tab:hover { color: #1f2328; background-color: #f6f8fa; }
 
 #pomodoroPanel { background-color: #ffffff; }
 #pomodoroStatus { font-size: 12px; font-weight: 600; color: #7c3aed; letter-spacing: 2px; }
-#pomodoroTime { font-size: 56px; font-weight: 300; color: #1f2328; font-family: "Consolas", monospace; }
+#pomodoroTime { font-size: 40px; font-weight: 300; color: #1f2328; font-family: "Consolas", monospace; }
 #pomodoroProgress { background-color: #eaeef2; border: none; border-radius: 3px; }
 #pomodoroProgress::chunk { background-color: #7c3aed; border-radius: 3px; }
 #pomodoroStart { background-color: #7c3aed; color: #fff; border: none; border-radius: 6px; padding: 10px 28px; font-weight: 600; font-size: 14px; }
@@ -634,6 +781,16 @@ QTabBar::tab:hover { color: #1f2328; background-color: #f6f8fa; }
 #emptyStateText { font-size: 15px; color: #656d76; }
 
 #dashToolbar { background-color: #f6f8fa; border-bottom: 1px solid #d0d7de; }
+#dashTopBar { background-color: #f6f8fa; border-bottom: 1px solid #d0d7de; }
+#breadcrumbLabel { color: #656d76; font-size: 13px; }
+#streakChip { background-color: #ffffff; border: 1px solid #d0d7de; border-radius: 10px; padding: 6px 10px; color: #1f2328; }
+#focusToggle { background-color: #ffffff; border: 1px solid #d0d7de; border-radius: 10px; padding: 6px 10px; }
+#focusToggle:hover { background-color: #eaeef2; }
+#panelCard { background-color: #ffffff; border: 1px solid #d0d7de; border-radius: 14px; }
+#focusPanel { background-color: #ffffff; border-left: 1px solid #d0d7de; }
+#iconRail { background-color: #f6f8fa; border-right: 1px solid #d0d7de; }
+#railIcon { background: transparent; border: none; border-radius: 10px; color: #656d76; font-size: 18px; padding: 0px; }
+#railIcon:hover { background-color: #eaeef2; color: #1f2328; }
 #backButton { background: transparent; border: none; color: #656d76; padding: 6px 12px; }
 #backButton:hover { color: #1f2328; }
 #completeButton { background-color: #1a7f37; color: #fff; border: none; border-radius: 6px; padding: 6px 16px; font-weight: 600; }
