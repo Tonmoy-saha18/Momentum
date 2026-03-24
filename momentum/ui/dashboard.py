@@ -295,6 +295,11 @@ class DashboardView(QWidget):
         nl.setContentsMargins(0, 0, 0, 0)
         nl.setSpacing(8)
 
+        self.btn_back = QPushButton("Courses")
+        self.btn_back.setObjectName("courseNavButton")
+        self.btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
+        nl.addWidget(self.btn_back)
+
         self.btn_prev = QPushButton("← Prev")
         self.btn_prev.setObjectName("prevButton")
         self.btn_prev.setEnabled(False)
@@ -313,6 +318,7 @@ class DashboardView(QWidget):
     def _wire(self) -> None:
         self.sidebar.lesson_selected.connect(self._on_lesson_selected)
         self.sidebar.collapse_requested.connect(lambda: self.chk_focus.setChecked(True))
+        self.btn_back.clicked.connect(self._on_back)
         self.btn_complete.clicked.connect(self._on_toggle_complete)
         self.btn_prev.clicked.connect(self._on_prev)
         self.btn_next.clicked.connect(self._on_next)
