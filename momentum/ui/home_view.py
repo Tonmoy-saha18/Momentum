@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -151,16 +151,135 @@ class AddCourseCard(QFrame):
         super().mousePressEvent(event)
 
 
+class _MomentumChart(QWidget):
+    """7-day bar strip with per-day color glows (home momentum)."""
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setObjectName("momentumChart")
+        self.setMinimumHeight(140)
+        self._minutes: list[int] = [0] * 7
+
+    def set_minutes(self, minutes: list[int]) -> None:
+        m = minutes[-7:] if minutes else [0] * 7
+        if len(m) < 7:
+            m = [0] * (7 - len(m)) + m
+        self._minutes = m
+        self.update()
+
+    def paintEvent(self, _event) -> None:  # noqa: N802
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        w, h = self.width(), self.height()
+        pad_x = 14
+        pad_top = 10
+        pad_bottom = 32
+        inner_w = max(1, w - pad_x * 2)
+        inner_h = max(1, h - pad_top - pad_bottom)
+
+        n = 7
+        gap = max(10, inner_w // 36)
+        bar_w = max(20, (inner_w - gap * (n - 1)) // n)
+        total_w = bar_w * n + gap * (n - 1)
+        start_x = pad_x + max(0, (inner_w - total_w) // 2)
+
+        max_m = max(self._minutes) if self._minutes else 0
+
+        grid = QColor("#1a263c")
+        axis = QColor("#2b3956")
+        text = QColor("#8b97b4")
+
+        palette = [
+            QColor("#5f7dff"),  # Mon - blue
+            QColor("#22c55e"),  # Tue - green
+            QColor("#a78bfa"),  # Wed - violet
+            QColor("#38bdf8"),  # Thu - cyan
+            QColor("#f59e0b"),  # Fri - amber
+            QColor("#fb7185"),  # Sat - rose
+            QColor("#34d399"),  # Sun - mint
+        ]
+
+        # Baseline + mid grid line
+        base_y = pad_top + inner_h
+        painter.setPen(axis)
+        painter.drawLine(pad_x, base_y, w - pad_x, base_y)
+        painter.setPen(QColor(grid.red(), grid.green(), grid.blue(), 160))
+        painter.drawLine(pad_x, pad_top + inner_h // 2, w - pad_x, pad_top + inner_h // 2)
+
+        # Empty state
+        if max_m <= 0:
+            painter.setPen(text)
+            painter.drawText(0, 0, w, h, Qt.AlignmentFlag.AlignCenter, "No activity yet")
+            painter.end()
+            return
+
+        for i in range(n):
+            x = start_x + i * (bar_w + gap)
+            minutes = self._minutes[i] if i < len(self._minutes) else 0
+
+            # Proper bar height with small minimum so non-zero shows.
+            bar_h = int((minutes / max_m) * inner_h) if minutes > 0 else 0
+            # Ensure label can always sit centered inside.
+            bar_h = max(22, bar_h) if minutes > 0 else 2
+            bar_h = min(inner_h, bar_h)
+            y = base_y - bar_h
+
+            base = palette[i % len(palette)]
+
+            # Per-day glow behind the bar
+            if minutes > 0:
+                glow = QColor(base)
+                glow.setAlpha(70)
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(glow)
+                painter.drawRoundedRect(x - 3, y - 3, bar_w + 6, bar_h + 6, 10, 10)
+
+            # Bar fill
+            fill = QColor(base if minutes > 0 else QColor("#222d43"))
+            fill.setAlpha(210 if minutes > 0 else 200)
+            painter.setBrush(fill)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawRoundedRect(x, y, bar_w, bar_h, 8, 8)
+
+            # Time label centered inside bar (always, when minutes > 0)
+            if minutes > 0:
+                label = self._format_minutes(minutes)
+                f = painter.font()
+                f.setPointSize(9 if bar_h >= 26 and bar_w >= 44 else 8)
+                f.setBold(True)
+                painter.setFont(f)
+                painter.setPen(QColor("#0a101b"))
+                painter.drawText(x, y, bar_w, bar_h, Qt.AlignmentFlag.AlignCenter, label)
+
+            # Day label below axis
+            painter.setPen(text)
+            day = ["M", "T", "W", "T", "F", "S", "S"][i]
+            painter.drawText(x, h - 20, bar_w, 16, Qt.AlignmentFlag.AlignCenter, day)
+
+        painter.end()
+
+    @staticmethod
+    def _format_minutes(minutes: int) -> str:
+        if minutes < 60:
+            return f"{minutes}m"
+        h = minutes // 60
+        m = minutes % 60
+        if m == 0:
+            return f"{h}h"
+        return f"{h}h{m:02d}"
+
+
 # ── Home View ────────────────────────────────────────────────────────
 
 class HomeView(QWidget):
     course_selected = Signal(int)
     folder_selected = Signal(str)
+    analytics_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("homeView")
-        self._momentum_bars: list[QFrame] = []
         self._momentum_day_chips: list[QLabel] = []
         self._daily_minutes: list[int] = [0] * 7
         self._kpi_values: dict[str, QLabel] = {}
@@ -241,6 +360,7 @@ class HomeView(QWidget):
         left.addWidget(sub)
         sec.addLayout(left)
         sec.addStretch()
+
         view = QLabel("VIEW LIBRARY")
         view.setObjectName("homeLibraryAction")
         sec.addWidget(view, alignment=Qt.AlignmentFlag.AlignBottom)
@@ -256,10 +376,35 @@ class HomeView(QWidget):
         self._cards_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         root.addWidget(self._cards_widget)
 
-        # Momentum analytics section
+        # Momentum analytics section header (with tabs)
+        mh = QHBoxLayout()
+        mh.setContentsMargins(0, 0, 0, 0)
         mt = QLabel("Your Momentum")
         mt.setObjectName("homeSectionTitle")
-        root.addWidget(mt)
+        mh.addWidget(mt)
+        mh.addStretch()
+
+        tabs = QWidget()
+        tabs.setObjectName("homeMomentumTabs")
+        tl = QHBoxLayout(tabs)
+        tl.setContentsMargins(6, 6, 6, 6)
+        tl.setSpacing(6)
+
+        self.btn_momentum_tab = QPushButton("Momentum")
+        self.btn_momentum_tab.setObjectName("homeMomentumTabActive")
+        self.btn_momentum_tab.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_momentum_tab.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        tl.addWidget(self.btn_momentum_tab)
+
+        self.btn_analytics_tab = QPushButton("Analytics")
+        self.btn_analytics_tab.setObjectName("homeMomentumTab")
+        self.btn_analytics_tab.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_analytics_tab.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.btn_analytics_tab.clicked.connect(self.analytics_requested.emit)
+        tl.addWidget(self.btn_analytics_tab)
+
+        mh.addWidget(tabs, alignment=Qt.AlignmentFlag.AlignVCenter)
+        root.addLayout(mh)
 
         momentum = QFrame()
         momentum.setObjectName("momentumCard")
@@ -304,16 +449,8 @@ class HomeView(QWidget):
         days.addWidget(self.lbl_momentum_date)
         ml.addLayout(days)
 
-        bars = QHBoxLayout()
-        bars.setSpacing(8)
-        for _ in range(7):
-            b = QFrame()
-            b.setObjectName("momentumBar")
-            b.setFixedHeight(10)
-            b.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-            bars.addWidget(b)
-            self._momentum_bars.append(b)
-        ml.addLayout(bars)
+        self._momentum_chart = _MomentumChart()
+        ml.addWidget(self._momentum_chart)
         self.lbl_momentum_empty = QLabel("No recent activity yet. Start a lesson to build momentum.")
         self.lbl_momentum_empty.setObjectName("homeSectionSubtitle")
         self.lbl_momentum_empty.hide()
@@ -395,17 +532,7 @@ class HomeView(QWidget):
         max_minutes = max(minutes) if minutes else 0
         active_idx = max(range(len(minutes)), key=lambda i: minutes[i]) if max_minutes > 0 else -1
 
-        for i, bar in enumerate(self._momentum_bars):
-            if max_minutes == 0:
-                h = 10
-            else:
-                # Normalize to visible range while still reflecting relative effort.
-                h = 10 + int((minutes[i] / max_minutes) * 32)
-            bar.setFixedHeight(max(10, h))
-            bar.setObjectName("momentumBarActive" if i == active_idx and minutes[i] > 0 else "momentumBar")
-            bar.setToolTip(f"{minutes[i]} minute(s)")
-            bar.style().unpolish(bar)
-            bar.style().polish(bar)
+        self._momentum_chart.set_minutes(minutes)
 
         day_labels = ["M", "T", "W", "T", "F", "S", "S"]
         for i, chip in enumerate(self._momentum_day_chips):

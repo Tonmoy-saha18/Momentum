@@ -479,6 +479,44 @@ QTabBar::tab:hover {
     font-weight: 700;
     background: transparent;
 }
+#homeAnalyticsButton {
+    background-color: rgba(18, 29, 48, 190);
+    border: 1px solid #273753;
+    border-radius: 10px;
+    color: #eef4ff;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 700;
+}
+#homeAnalyticsButton:hover {
+    border-color: #5f7dff;
+    background-color: rgba(21, 34, 56, 210);
+}
+
+#homeMomentumTabs {
+    background-color: rgba(15, 21, 35, 200);
+    border: 1px solid rgba(255, 255, 255, 18);
+    border-radius: 14px;
+}
+#homeMomentumTab, #homeMomentumTabActive {
+    border: none;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+#homeMomentumTab {
+    background: transparent;
+    color: #8b97b4;
+}
+#homeMomentumTab:hover {
+    background-color: rgba(34, 45, 67, 180);
+    color: #eef4ff;
+}
+#homeMomentumTabActive {
+    background-color: rgba(95, 125, 255, 180);
+    color: #0a101b;
+}
 #appTitle {
     font-size: 28px;
     font-weight: 700;
@@ -642,6 +680,7 @@ QTabBar::tab:hover {
     border: 1px solid #8aa0ff;
     border-radius: 8px;
 }
+#momentumChart { background: transparent; }
 
 #emptyStateText {
     font-size: 15px;
@@ -798,10 +837,25 @@ QTabBar::tab:hover {
 
 /* ─── Analytics View ─────────────────────────────────────── */
 #analyticsView {
-    background-color: #0d1117;
+    background-color: #0a101b;
+}
+#analyticsScroll, #weeklyChart { background: transparent; border: none; }
+#analyticsView QLabel { background: transparent; }
+
+#backButton {
+    background-color: rgba(18, 29, 48, 180);
+    border: 1px solid rgba(255, 255, 255, 18);
+    border-radius: 10px;
+    color: #eef4ff;
+    padding: 7px 12px;
+    font-weight: 700;
+}
+#backButton:hover {
+    background-color: rgba(21, 34, 56, 210);
+    border-color: #5f7dff;
 }
 #pageTitle {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     color: #e6edf3;
 }
@@ -813,14 +867,15 @@ QTabBar::tab:hover {
 }
 
 #statCard {
-    background-color: #161b22;
-    border: 1px solid #21262d;
+    background-color: #0f1523;
+    border: 1px solid #202b43;
     border-radius: 12px;
 }
+#statCard QLabel { background: transparent; }
 #statTitle {
     font-size: 12px;
-    color: #8b949e;
-    font-weight: 500;
+    color: #8ea0c4;
+    font-weight: 600;
 }
 #statValue {
     font-size: 28px;
@@ -829,7 +884,7 @@ QTabBar::tab:hover {
 }
 #statSubtitle {
     font-size: 11px;
-    color: #7c3aed;
+    color: #8ea2ff;
 }
 
 /* ─── Scroll Bars ────────────────────────────────────────── */
