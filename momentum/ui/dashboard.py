@@ -325,6 +325,7 @@ class DashboardView(QWidget):
         self.player.position_changed.connect(self._on_position)
         self.player.video_completed.connect(self._on_video_completed)
         self.player.fullscreen_changed.connect(self._on_player_fullscreen)
+        self.player.playback_paused.connect(self.progress_svc.flush_watch_time)
         self.notes.note_saved.connect(self._on_note_saved)
         self.notes.note_deleted.connect(self._on_note_deleted)
         self.notes.timestamp_clicked.connect(
@@ -533,6 +534,8 @@ class DashboardView(QWidget):
     # ── Slots ────────────────────────────────────────────────────────
 
     def _on_lesson_selected(self, lesson_id: int) -> None:
+        # Persist any buffered watch-time from the previous lesson before switching.
+        self.progress_svc.flush_watch_time()
         self._lesson_id = lesson_id
         lesson = self.db.get_lesson(lesson_id)
         if not lesson:
@@ -554,6 +557,7 @@ class DashboardView(QWidget):
     def _on_video_completed(self) -> None:
         if not self._lesson_id:
             return
+        self.progress_svc.flush_watch_time()
         completed = self.progress_svc.check_auto_complete(
             self._lesson_id, self.player.get_position(), self.player.get_duration()
         )
@@ -595,6 +599,7 @@ class DashboardView(QWidget):
             self.notes.display_notes(self.notes_svc.get_notes(self._lesson_id))
 
     def _on_back(self) -> None:
+        self.progress_svc.flush_watch_time()
         self.player.stop()
         if self._focus:
             self.chk_focus.setChecked(False)

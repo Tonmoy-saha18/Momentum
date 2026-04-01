@@ -386,6 +386,30 @@ class Database:
             ).fetchone()
         return row["total"] if row else 0
 
+    def get_weekly_watch_time_seconds(self) -> int:
+        activities = self.get_daily_activity(days=7)
+        return sum(a.total_seconds for a in activities)
+
+    def get_streak_time_seconds(self) -> int:
+        """Return total watch seconds accumulated in the current streak window."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT date, total_seconds FROM daily_activity WHERE total_seconds > 0 ORDER BY date DESC"
+            ).fetchall()
+        if not rows:
+            return 0
+
+        total_seconds = 0
+        expected = date.today()
+        for row in rows:
+            activity_date = date.fromisoformat(row["date"])
+            if activity_date == expected:
+                total_seconds += row["total_seconds"]
+                expected -= timedelta(days=1)
+            elif activity_date < expected:
+                break
+        return total_seconds
+
     # ── Row → Entity converters ──────────────────────────────────────
 
     @staticmethod

@@ -9,9 +9,20 @@ from momentum.models.database import Database
 class ProgressService:
     def __init__(self, db: Database):
         self.db = db
+        self._last_lesson_id: int | None = None
+        self._last_position_ms: int = 0
+        self._pending_watch_ms: int = 0
 
     def update_position(self, lesson_id: int, position_ms: int, duration_ms: int) -> None:
         self.db.update_lesson_progress(lesson_id, position_ms, duration_ms)
+        self._accumulate_watch_time(lesson_id, position_ms)
+
+    def flush_watch_time(self) -> None:
+        """Persist buffered watch time into daily_activity."""
+        whole_seconds = self._pending_watch_ms // 1000
+        if whole_seconds > 0:
+            self.db.update_daily_activity(seconds=whole_seconds)
+            self._pending_watch_ms %= 1000
 
     def mark_completed(self, lesson_id: int) -> None:
         lesson = self.db.get_lesson(lesson_id)
@@ -50,3 +61,22 @@ class ProgressService:
     def get_resume_position(self, lesson_id: int) -> int:
         lesson = self.db.get_lesson(lesson_id)
         return lesson.watch_position_ms if lesson else 0
+
+    def _accumulate_watch_time(self, lesson_id: int, position_ms: int) -> None:
+        # New lesson/file: reset pointer so we only measure forward playback deltas.
+        if self._last_lesson_id != lesson_id:
+            self.flush_watch_time()
+            self._last_lesson_id = lesson_id
+            self._last_position_ms = position_ms
+            return
+
+        delta_ms = position_ms - self._last_position_ms
+        self._last_position_ms = position_ms
+
+        # Count only natural forward playback; ignore rewinds and large jumps (seeks).
+        if 0 < delta_ms <= 15_000:
+            self._pending_watch_ms += delta_ms
+
+        # Flush in small batches to keep stats responsive without excessive DB writes.
+        if self._pending_watch_ms >= 5_000:
+            self.flush_watch_time()

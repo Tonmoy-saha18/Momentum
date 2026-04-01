@@ -13,11 +13,18 @@ class AnalyticsService:
 
     def get_overview(self) -> dict:
         courses = self.db.get_all_courses()
+        total_lessons = sum(c.total_lessons for c in courses)
+        completed_lessons = sum(c.completed_lessons for c in courses)
+        progress_pct = (completed_lessons / total_lessons * 100.0) if total_lessons > 0 else 0.0
         return {
             "total_courses": len(courses),
             "total_hours": self.db.get_total_watch_time_seconds() / 3600,
             "streak": self.db.get_streak(),
-            "completed_lessons": sum(c.completed_lessons for c in courses),
+            "completed_lessons": completed_lessons,
+            "total_lessons": total_lessons,
+            "overall_progress_pct": progress_pct,
+            "weekly_watch_seconds": self.db.get_weekly_watch_time_seconds(),
+            "streak_time_seconds": self.db.get_streak_time_seconds(),
         }
 
     def get_weekly_data(self) -> list[tuple[str, int]]:
