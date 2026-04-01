@@ -15,7 +15,7 @@ class Theme:
 _DARK_THEME = """
 /* ─── Global ─────────────────────────────────────────────── */
 QWidget {
-    background-color: #0d1117;
+    background-color: #0a101b;
     color: #e6edf3;
     font-family: "Segoe UI", "Inter", "Helvetica Neue", sans-serif;
     font-size: 13px;
@@ -25,11 +25,11 @@ QWidget {
 
 /* ─── Main Window ────────────────────────────────────────── */
 QMainWindow {
-    background-color: #0d1117;
+    background-color: #0a101b;
 }
 
 QMenuBar {
-    background-color: #161b22;
+    background-color: #0f1523;
     color: #e6edf3;
     border-bottom: 1px solid #21262d;
     padding: 2px 0;
@@ -42,7 +42,7 @@ QMenuBar::item:selected {
     background-color: #21262d;
 }
 QMenu {
-    background-color: #161b22;
+    background-color: #121a2a;
     border: 1px solid #30363d;
     border-radius: 8px;
     padding: 4px;
@@ -56,7 +56,7 @@ QMenu::item:selected {
 }
 
 QStatusBar {
-    background-color: #161b22;
+    background-color: #0f1523;
     color: #8b949e;
     border-top: 1px solid #21262d;
     padding: 4px 12px;
@@ -65,12 +65,12 @@ QStatusBar {
 
 /* ─── Sidebar ────────────────────────────────────────────── */
 #sidebar {
-    background-color: #0f1520;
+    background-color: #0f1523;
     border-right: 1px solid #21262d;
 }
 
 #sidebarHeader {
-    background-color: #0f1520;
+    background-color: #0f1523;
     border-bottom: 1px solid #21262d;
 }
 
@@ -114,7 +114,7 @@ QStatusBar {
 
 /* ─── Lesson Tree ────────────────────────────────────────── */
 #lessonTree {
-    background-color: #0f1520;
+    background-color: #0f1523;
     border: none;
     outline: none;
     padding: 8px;
@@ -414,7 +414,70 @@ QTabBar::tab:hover {
 
 /* ─── Home View ──────────────────────────────────────────── */
 #homeView {
-    background-color: #0d1117;
+    background-color: #0a101b;
+}
+#homePageScroll, #courseGrid {
+    background: transparent;
+    border: none;
+}
+#homeHero {
+    background-color: #0f1523;
+    border: 1px solid #202b43;
+    border-radius: 20px;
+}
+#homeHero QWidget {
+    background: transparent;
+}
+#homeScrollViewport {
+    background: transparent;
+}
+#homeView QFrame, #homeView QLabel, #homeView QProgressBar {
+    background: transparent;
+}
+#heroKicker {
+    color: #7d8cae;
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+#heroTitle {
+    color: #f5f7ff;
+    font-size: 38px;
+    font-weight: 700;
+    background: transparent;
+}
+#heroStatLabel {
+    color: #7d8cae;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+#heroStatValue {
+    color: #9cb2ff;
+    font-size: 28px;
+    font-weight: 700;
+}
+#heroDivider {
+    background-color: #22314e;
+    border: none;
+}
+#homeSectionTitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f4f7ff;
+    background: transparent;
+}
+#homeSectionSubtitle {
+    font-size: 13px;
+    color: #8b97b4;
+    background: transparent;
+}
+#homeLibraryAction {
+    color: #8ea2ff;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    background: transparent;
 }
 #appTitle {
     font-size: 28px;
@@ -446,36 +509,138 @@ QTabBar::tab:hover {
 
 /* ─── Course Cards ───────────────────────────────────────── */
 #courseCard {
-    background-color: #161b22;
-    border: 1px solid #21262d;
-    border-radius: 12px;
+    background-color: #121a2a;
+    border: 1px solid #25334d;
+    border-radius: 14px;
+}
+#courseCard QWidget {
+    background: transparent;
 }
 #courseCard:hover {
-    border-color: #7c3aed;
-    background-color: #1c2333;
+    border-color: #3b7054;
+    background-color: #152238;
+}
+#courseCardIcon {
+    color: #73bf96;
+    font-size: 15px;
+}
+#courseCardBadge {
+    background-color: #1a2940;
+    color: #a4b8d8;
+    border: 1px solid #2f486f;
+    border-radius: 9px;
+    padding: 2px 8px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    font-weight: 700;
 }
 #cardTitle {
-    font-size: 15px;
-    font-weight: 600;
-    color: #e6edf3;
+    font-size: 14px;
+    font-weight: 700;
+    color: #eef2ff;
+}
+#cardSubtitle {
+    font-size: 12px;
+    color: #8e9cbc;
 }
 #cardStats {
-    font-size: 12px;
-    color: #8b949e;
+    font-size: 10px;
+    color: #8e9cbc;
+    letter-spacing: 1px;
+    font-weight: 600;
 }
 #cardProgress {
-    background-color: #21262d;
-    border: none;
-    border-radius: 2px;
+    background-color: #1f2b3f;
+    border: 1px solid #2b3d5a;
+    border-radius: 3px;
 }
 #cardProgress::chunk {
-    background-color: #7c3aed;
-    border-radius: 2px;
+    background-color: #2ea043;
+    border-radius: 3px;
 }
 #cardPercent {
-    font-size: 12px;
-    color: #7c3aed;
+    font-size: 11px;
+    color: #6dd98f;
     font-weight: 600;
+}
+#addCourseCard {
+    background-color: #0e1524;
+    border: 1px dashed #334567;
+    border-radius: 14px;
+}
+#addCourseCard:hover {
+    border-color: #6583ff;
+}
+#addCourseCardPlus {
+    font-size: 30px;
+    color: #9cb0ff;
+}
+#addCourseCardTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #edf2ff;
+}
+#addCourseCardSubtitle {
+    font-size: 12px;
+    color: #8f9cbc;
+}
+#momentumCard {
+    background-color: #0f1523;
+    border: 1px solid #202b43;
+    border-radius: 16px;
+}
+#momentumCard QWidget {
+    background: transparent;
+}
+#momentumKpiCard {
+    background-color: #121d30;
+    border: 1px solid #273753;
+    border-radius: 12px;
+    min-height: 56px;
+}
+#momentumKpiTitle {
+    color: #8ea0c4;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+#momentumKpiValue {
+    color: #eef4ff;
+    font-size: 16px;
+    font-weight: 700;
+}
+#momentumDayChip {
+    background-color: #1a263c;
+    color: #a5b2d1;
+    border: 1px solid #2a3958;
+    border-radius: 10px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 600;
+}
+#momentumDayChipActive {
+    background-color: #31486e;
+    color: #ecf2ff;
+    border: 1px solid #4a6797;
+    border-radius: 10px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 700;
+}
+#momentumDate {
+    color: #8390ad;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+#momentumBar {
+    background-color: #222d43;
+    border: 1px solid #2b3956;
+    border-radius: 8px;
+}
+#momentumBarActive {
+    background-color: #5f7dff;
+    border: 1px solid #8aa0ff;
+    border-radius: 8px;
 }
 
 #emptyStateText {
@@ -492,7 +657,7 @@ QTabBar::tab:hover {
 
 /* Modern lesson top bar (mock-aligned) */
 #dashTopBar {
-    background-color: #0f1520;
+    background-color: #0f1523;
     border-bottom: 1px solid #21262d;
 }
 #focusModeLabel { color: #cbd5e1; font-size: 13px; }
@@ -603,19 +768,19 @@ QTabBar::tab:hover {
 }
 
 #panelCard {
-    background-color: #0f1520;
+    background-color: #0f1523;
     border: 1px solid #21262d;
     border-radius: 14px;
 }
 
 #focusPanel {
-    background-color: #0d1117;
+    background-color: #0a101b;
     border-left: 1px solid #21262d;
 }
 
 /* ─── Icon Rail (Focus Mode) ────────────────────────────── */
 #iconRail {
-    background-color: #161b22;
+    background-color: #0f1523;
     border-right: 1px solid #21262d;
 }
 #railIcon {

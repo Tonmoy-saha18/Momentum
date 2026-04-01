@@ -92,7 +92,17 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(view.value)
 
     def _refresh_home(self) -> None:
-        self.home_view.display_courses(self.db.get_all_courses())
+        courses = self.db.get_all_courses()
+        self.home_view.display_courses(courses)
+        overview = self.analytics_svc.get_overview()
+        weekly_minutes = [m for _, m in self.analytics_svc.get_weekly_data()]
+        self.home_view.update_home_stats(
+            streak_days=overview.get("streak", 0),
+            weekly_minutes=weekly_minutes,
+            total_courses=overview.get("total_courses", 0),
+            total_hours=overview.get("total_hours", 0.0),
+            completed_lessons=overview.get("completed_lessons", 0),
+        )
 
     def _show_analytics(self) -> None:
         ov = self.analytics_svc.get_overview()
