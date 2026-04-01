@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QEasingCurve, QParallelAnimationGroup, QPropertyAnimation, Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QApplication,
+    QGraphicsOpacityEffect,
     QMainWindow,
     QMessageBox,
     QStackedWidget,
@@ -28,6 +29,7 @@ class MainWindow(QMainWindow):
         self.db = db
         self.folder_parser = FolderParser(db)
         self.analytics_svc = AnalyticsService(db)
+        self._nav_anim: QParallelAnimationGroup | None = None
 
         self._build_ui()
         self._build_menus()
@@ -81,6 +83,7 @@ class MainWindow(QMainWindow):
     def _wire(self) -> None:
         self.home_view.course_selected.connect(self._on_course_selected)
         self.home_view.folder_selected.connect(self._on_folder_selected)
+        self.home_view.analytics_requested.connect(self._show_analytics)
         self.dashboard_view.back_requested.connect(lambda: self._goto(ViewIndex.HOME))
         self.analytics_view.back_requested.connect(lambda: self._goto(ViewIndex.HOME))
 
@@ -89,7 +92,60 @@ class MainWindow(QMainWindow):
     def _goto(self, view: ViewIndex) -> None:
         if view == ViewIndex.HOME:
             self._refresh_home()
-        self.stack.setCurrentIndex(view.value)
+        self._animate_to(view.value)
+
+    def _animate_to(self, index: int) -> None:
+        if index == self.stack.currentIndex():
+            return
+
+        # Stop any in-flight animation.
+        if self._nav_anim and self._nav_anim.state() == self._nav_anim.State.Running:
+            self._nav_anim.stop()
+
+        current = self.stack.currentWidget()
+        nxt = self.stack.widget(index)
+        if not current or not nxt:
+            self.stack.setCurrentIndex(index)
+            return
+
+        # Fade out current, swap, fade in next.
+        out_fx = QGraphicsOpacityEffect(current)
+        out_fx.setOpacity(1.0)
+        current.setGraphicsEffect(out_fx)
+
+        in_fx = QGraphicsOpacityEffect(nxt)
+        in_fx.setOpacity(0.0)
+        nxt.setGraphicsEffect(in_fx)
+
+        fade_out = QPropertyAnimation(out_fx, b"opacity", self)
+        fade_out.setDuration(140)
+        fade_out.setStartValue(1.0)
+        fade_out.setEndValue(0.0)
+        fade_out.setEasingCurve(QEasingCurve.Type.InOutCubic)
+
+        fade_in = QPropertyAnimation(in_fx, b"opacity", self)
+        fade_in.setDuration(160)
+        fade_in.setStartValue(0.0)
+        fade_in.setEndValue(1.0)
+        fade_in.setEasingCurve(QEasingCurve.Type.InOutCubic)
+
+        group = QParallelAnimationGroup(self)
+        group.addAnimation(fade_out)
+
+        def _swap() -> None:
+            self.stack.setCurrentIndex(index)
+            fade_in.start()
+
+        fade_out.finished.connect(_swap)
+
+        def _cleanup() -> None:
+            # Remove effects to avoid stacking effects and GPU overhead.
+            current.setGraphicsEffect(None)
+            nxt.setGraphicsEffect(None)
+
+        group.finished.connect(_cleanup)
+        self._nav_anim = group
+        group.start()
 
     def _refresh_home(self) -> None:
         courses = self.db.get_all_courses()
