@@ -1,5 +1,6 @@
 """Application-wide configuration constants."""
 
+import sys
 from pathlib import Path
 
 
@@ -9,9 +10,10 @@ class Config:
 
     # Paths
     _PROJECT_ROOT = Path(__file__).resolve().parent.parent
+    _RUNTIME_ROOT = Path(getattr(sys, "_MEIPASS", _PROJECT_ROOT))
     APP_DIR = Path.home() / ".momentum"
     DB_PATH = APP_DIR / "momentum.db"
-    ICON_PATH = _PROJECT_ROOT / "resources" / "icons" / "momentum.png"
+    ICON_PATH = _RUNTIME_ROOT / "resources" / "icons" / "momentum.png"
 
     # Video
     VIDEO_EXTENSIONS = frozenset({
