@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from ctypes import windll  # type: ignore[attr-defined]
 
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import QApplication
@@ -24,6 +25,7 @@ class MomentumApp:
     """Thin wrapper that wires the Qt application together."""
 
     def __init__(self, argv: list[str] | None = None):
+        self._set_windows_appusermodel_id()
         self.qt = QApplication(argv or sys.argv)
         self.qt.setApplicationName(Config.APP_NAME)
         self.qt.setApplicationVersion(Config.VERSION)
@@ -42,3 +44,15 @@ class MomentumApp:
     def run(self) -> int:
         self.window.show()
         return self.qt.exec()
+
+    @staticmethod
+    def _set_windows_appusermodel_id() -> None:
+        """Ensure Windows taskbar groups under our app identity."""
+        if not sys.platform.startswith("win"):
+            return
+        try:
+            app_id = f"{Config.APP_NAME}.{Config.APP_NAME}"
+            windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+        except Exception:
+            # Best-effort only; icon still falls back to window icon.
+            return
